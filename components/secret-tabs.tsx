@@ -103,7 +103,7 @@ export function SecretTabs() {
           <div className="text-center py-8 text-muted-foreground">Failed to load secrets. Please try again.</div>
         ) : (
           <>
-            <SecretList secrets={darkQuery.data.pages.flatMap((page) => page.secrets)} />
+            <SecretList secrets={darkQuery?.data?.pages?.flatMap((page) => page.secrets)} />
             {darkQuery.hasNextPage && (
               <div className="flex justify-center mt-8">
                 <Button onClick={handleLoadMore} disabled={darkQuery.isFetchingNextPage}>
@@ -122,7 +122,7 @@ export function SecretTabs() {
           <div className="text-center py-8 text-muted-foreground">Failed to load secrets. Please try again.</div>
         ) : (
           <>
-            <SecretList secrets={trendingQuery.data.pages.flatMap((page) => page.secrets)} />
+            <SecretList secrets={trendingQuery?.data?.pages?.flatMap((page) => page.secrets)} />
             {trendingQuery.hasNextPage && (
               <div className="flex justify-center mt-8">
                 <Button onClick={handleLoadMore} disabled={trendingQuery.isFetchingNextPage}>
