@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { SecretCard } from "@/components/secret-card"
 import { SecretDetail } from "@/components/secret-detail"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import type { Secret } from "@/lib/types"
 
 interface SecretListProps {
@@ -37,6 +37,10 @@ export function SecretList({ secrets }: SecretListProps) {
 
       <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <SheetContent className="sm:max-w-md md:max-w-lg">
+          <SheetHeader>
+            <SheetTitle>Secret Details</SheetTitle>
+            <SheetDescription>View and interact with this anonymous secret</SheetDescription>
+          </SheetHeader>
           {selectedSecret && <SecretDetail secret={selectedSecret} />}
         </SheetContent>
       </Sheet>

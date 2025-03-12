@@ -103,18 +103,19 @@ export function SecretDetail({ secret }: SecretDetailProps) {
   }, [userRating, toast])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mt-4">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-medium">Secret from @{secret.username}</h3>
-          <p className="text-sm text-muted-foreground">{formattedDate}</p>
+          <p className="text-sm text-muted-foreground">
+            From @{secret.username} • {formattedDate}
+          </p>
         </div>
         <Badge variant="outline" className={cn(getDarknessColor(secret.darkness))}>
           {secret.darkness}% Dark
         </Badge>
       </div>
 
-      <div className="py-4">
+      <div className="py-2">
         <p className="whitespace-pre-line">{secret.content}</p>
       </div>
 

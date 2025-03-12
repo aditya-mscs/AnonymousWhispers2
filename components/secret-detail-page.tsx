@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { fetchSecretById } from "@/lib/api/secrets"
 import { SecretDetail } from "@/components/secret-detail"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
@@ -47,7 +47,11 @@ export function SecretDetailPage({ id }: SecretDetailPageProps) {
       </div>
 
       <Card className="w-full">
-        <CardContent className="p-6">
+        <CardHeader>
+          <CardTitle>Anonymous Secret</CardTitle>
+          <CardDescription>View and interact with this anonymous secret</CardDescription>
+        </CardHeader>
+        <CardContent>
           <SecretDetail secret={secret} />
         </CardContent>
       </Card>
