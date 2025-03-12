@@ -2,17 +2,17 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getSecretById, addCommentToSecret, rateSecretDarkness } from "@/lib/db/utils"
 import { containsUnsafeContent } from "@/lib/utils"
 
-// Import mock DB functions for development
+// Import mock DB functions
 import * as mockDb from "@/lib/db/mock-db"
 
-// Use mock DB in development
-const useMockDb = process.env.NODE_ENV === "development"
+// Check if we should use mock data
+const useMockDb = process.env.USE_MOCK_DATA === "true"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = params.id
 
-    // Use mock DB in development
+    // Use mock DB if enabled
     const secret = useMockDb ? await mockDb.getSecretById(id) : await getSecretById(id)
 
     if (!secret) {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   try {
     const id = params.id
 
-    // Use mock DB in development
+    // Use mock DB if enabled
     const secret = useMockDb ? await mockDb.getSecretById(id) : await getSecretById(id)
 
     if (!secret) {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         return NextResponse.json({ error: "Rating must be a number between 1 and 10" }, { status: 400 })
       }
 
-      // Use mock DB in development
+      // Use mock DB if enabled
       const result = useMockDb
         ? await mockDb.rateSecretDarkness(id, body.rating, ip)
         : await rateSecretDarkness(id, body.rating, ip)
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         return NextResponse.json({ error: "Content contains unsafe or prohibited elements" }, { status: 400 })
       }
 
-      // Use mock DB in development
+      // Use mock DB if enabled
       const comment = useMockDb
         ? await mockDb.addCommentToSecret(id, body.content, body.username || "anonymous", ip)
         : await addCommentToSecret(id, body.content, body.username || "anonymous", ip)

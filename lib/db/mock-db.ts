@@ -89,15 +89,15 @@ export async function getSecrets(sort: "recent" | "darkness" | "trending", limit
   }
 
   // Simple pagination
-  const startIndex = lastEvaluatedKey ? Number.parseInt(lastEvaluatedKey) : 0
+  const startIndex = lastEvaluatedKey ? Number.parseInt(lastEvaluatedKey.index) : 0
   const endIndex = startIndex + limit
   const paginatedSecrets = sortedSecrets.slice(startIndex, endIndex)
 
-  const nextKey = endIndex < sortedSecrets.length ? endIndex.toString() : null
+  const nextKey = endIndex < sortedSecrets.length ? { index: endIndex.toString() } : undefined
 
   return {
     secrets: paginatedSecrets,
-    lastEvaluatedKey: nextKey ? { index: nextKey } : undefined,
+    lastEvaluatedKey: nextKey,
   }
 }
 

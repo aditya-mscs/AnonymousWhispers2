@@ -1,7 +1,6 @@
 export function getAwsConfig() {
-  // Check if we're using mock data
-  if (process.env.USE_MOCK_DATA === "true") {
-    console.log("Using mock AWS configuration")
+  if (process.env.NODE_ENV === "development") {
+    console.log("Using local DynamoDB configuration")
     return {
       region: "local",
       endpoint: "http://localhost:8000",
@@ -12,6 +11,7 @@ export function getAwsConfig() {
     }
   }
 
+  // Production configuration
   return {
     region: process.env.AWS_REGION || "us-east-1",
     credentials: {

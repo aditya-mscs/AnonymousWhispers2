@@ -3,11 +3,11 @@ import { createNewSecret, getSecrets } from "@/lib/db/utils"
 import { containsUnsafeContent } from "@/lib/utils"
 import { rateLimiter } from "@/lib/rate-limit"
 
-// Import mock DB functions for development
+// Import mock DB functions
 import * as mockDb from "@/lib/db/mock-db"
 
-// Use mock DB in development
-const useMockDb = process.env.NODE_ENV === "development"
+// Check if we should use mock data
+const useMockDb = process.env.USE_MOCK_DATA === "true"
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Use mock DB in development
+    // Use mock DB if enabled, otherwise use real DB (which could be local or production)
     const result = useMockDb
       ? await mockDb.getSecrets(sort, limit, lastEvaluatedKey)
       : await getSecrets(sort, limit, lastEvaluatedKey)
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     // Get the IP address
     const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1"
 
-    // Create the secret using mock DB in development
+    // Create the secret using mock DB if enabled
     const secret = useMockDb
       ? await mockDb.createNewSecret(body.content, body.darkness, body.username, ip)
       : await createNewSecret(body.content, body.darkness, body.username, ip)
