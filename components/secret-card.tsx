@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { MessageSquare } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -14,6 +15,13 @@ interface SecretCardProps {
 }
 
 export function SecretCard({ secret, onClick }: SecretCardProps) {
+  const [formattedDate, setFormattedDate] = useState<string>("")
+
+  // Handle date formatting on the client side only
+  useEffect(() => {
+    setFormattedDate(formatDistanceToNow(new Date(secret.createdAt), { addSuffix: true }))
+  }, [secret.createdAt])
+
   const getDarknessColor = (darkness: number) => {
     if (darkness < 30) return "bg-green-500/10 text-green-500"
     if (darkness < 70) return "bg-yellow-500/10 text-yellow-500"
@@ -45,9 +53,7 @@ export function SecretCard({ secret, onClick }: SecretCardProps) {
           </Button>
         </div>
         <div className="flex items-center">
-          <time dateTime={secret.createdAt.toISOString()}>
-            {formatDistanceToNow(secret.createdAt, { addSuffix: true })}
-          </time>
+          <time dateTime={new Date(secret.createdAt).toISOString()}>{formattedDate}</time>
         </div>
       </CardFooter>
     </Card>

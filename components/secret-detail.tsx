@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { MessageSquare, Share2, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -22,9 +22,22 @@ interface SecretDetailProps {
 
 export function SecretDetail({ secret }: SecretDetailProps) {
   const [comment, setComment] = useState("")
+  const [formattedDate, setFormattedDate] = useState<string>("")
+  const [commentDates, setCommentDates] = useState<Record<string, string>>({})
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [userRating, setUserRating] = useState(5)
+
+  // Handle date formatting on the client side only
+  useEffect(() => {
+    setFormattedDate(formatDistanceToNow(new Date(secret.createdAt), { addSuffix: true }))
+
+    const dates: Record<string, string> = {}
+    secret.comments.forEach((comment) => {
+      dates[comment.id] = formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })
+    })
+    setCommentDates(dates)
+  }, [secret])
 
   const getDarknessColor = (darkness: number) => {
     if (darkness < 30) return "bg-green-500/10 text-green-500"
@@ -57,6 +70,8 @@ export function SecretDetail({ secret }: SecretDetailProps) {
   }
 
   const handleShare = async () => {
+    if (typeof window === "undefined") return
+
     const secretUrl = `${window.location.origin}/secret/${secret.id}`
 
     if (navigator.share) {
@@ -92,7 +107,7 @@ export function SecretDetail({ secret }: SecretDetailProps) {
       <div className="flex justify-between items-start">
         <div>
           <h3 className="text-lg font-medium">Secret from @{secret.username}</h3>
-          <p className="text-sm text-muted-foreground">{formatDistanceToNow(secret.createdAt, { addSuffix: true })}</p>
+          <p className="text-sm text-muted-foreground">{formattedDate}</p>
         </div>
         <Badge variant="outline" className={cn(getDarknessColor(secret.darkness))}>
           {secret.darkness}% Dark
@@ -155,9 +170,7 @@ export function SecretDetail({ secret }: SecretDetailProps) {
                 <div className="space-y-1">
                   <div className="flex items-center">
                     <span className="font-medium text-sm">@{comment.username}</span>
-                    <span className="text-xs text-muted-foreground ml-2">
-                      {formatDistanceToNow(comment.createdAt, { addSuffix: true })}
-                    </span>
+                    <span className="text-xs text-muted-foreground ml-2">{commentDates[comment.id] || ""}</span>
                   </div>
                   <p className="text-sm">{comment.content}</p>
                 </div>

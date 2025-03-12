@@ -1,4 +1,4 @@
-import type { Secret, SecretInput } from "@/lib/types"
+import type { Secret, SecretInput, Comment } from "@/lib/types"
 
 // Mock data for development
 const MOCK_SECRETS: Secret[] = [
@@ -10,13 +10,13 @@ const MOCK_SECRETS: Secret[] = [
     username: "silentShadow",
     darknessRatings: [7, 8, 6, 5, 9], // Example ratings
     averageDarkness: 7, // Example average
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
     comments: [
       {
         id: "c1",
         content: "I do this too! Thought I was the only one.",
         username: "mysteryMouse",
-        createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+        createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
       },
     ],
   },
@@ -28,19 +28,19 @@ const MOCK_SECRETS: Secret[] = [
     username: "hiddenTruth",
     darknessRatings: [9, 8, 9, 10, 9], // Example ratings
     averageDarkness: 9, // Example average
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
     comments: [
       {
         id: "c2",
         content: "That's a heavy burden to carry. Hope you find peace.",
         username: "gentleWhisper",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(), // 12 hours ago
       },
       {
         id: "c3",
         content: "Your worth isn't defined by your job title. Be kind to yourself.",
         username: "wiseSage",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(), // 6 hours ago
       },
     ],
   },
@@ -52,7 +52,7 @@ const MOCK_SECRETS: Secret[] = [
     username: "chaosCreator",
     darknessRatings: [6, 7, 8, 7, 6], // Example ratings
     averageDarkness: 7, // Example average
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
     comments: [],
   },
   {
@@ -63,13 +63,13 @@ const MOCK_SECRETS: Secret[] = [
     username: "shadowCollector",
     darknessRatings: [10, 9, 10, 10, 9], // Example ratings
     averageDarkness: 10, // Example average
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72), // 3 days ago
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(), // 3 days ago
     comments: [
       {
         id: "c4",
         content: "This could end really badly for you. Be careful.",
         username: "realistRaven",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
       },
     ],
   },
@@ -86,7 +86,7 @@ export async function fetchSecrets({
   const sortedSecrets = [...MOCK_SECRETS]
 
   if (sort === "recent") {
-    sortedSecrets.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    sortedSecrets.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   } else if (sort === "darkness") {
     sortedSecrets.sort((a, b) => b.darkness - a.darkness)
   } else if (sort === "trending") {
@@ -116,7 +116,7 @@ export async function createSecret(input: SecretInput): Promise<Secret> {
     username: input.username,
     darknessRatings: [5],
     averageDarkness: 5,
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
     comments: [],
   }
 
@@ -130,14 +130,17 @@ export async function addComment(secretId: string, content: string): Promise<Com
   await new Promise((resolve) => setTimeout(resolve, 800))
 
   // Get username from localStorage (in a real app, this would be handled server-side)
-  const username = localStorage.getItem("username") || "anonymousUser"
+  let username = "anonymousUser"
+  if (typeof window !== "undefined") {
+    username = localStorage.getItem("username") || username
+  }
 
   // Create new comment
   const newComment: Comment = {
     id: Math.random().toString(36).substring(2, 9),
     content,
     username,
-    createdAt: new Date(),
+    createdAt: new Date().toISOString(),
   }
 
   // In production, this would update your database

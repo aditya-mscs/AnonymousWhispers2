@@ -25,6 +25,7 @@ export function SecretInput() {
   const [username, setUsername] = useState<string>("")
 
   useEffect(() => {
+    // Only access localStorage on the client
     const storedUsername = localStorage.getItem("username")
     if (storedUsername) {
       setUsername(storedUsername)
@@ -56,6 +57,15 @@ export function SecretInput() {
   })
 
   const startRecording = async () => {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices) {
+      toast({
+        title: "Error",
+        description: "Voice recording is not supported in your browser.",
+        variant: "destructive",
+      })
+      return
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const mediaRecorder = new MediaRecorder(stream)
@@ -132,7 +142,7 @@ export function SecretInput() {
     secretMutation.mutate({
       content: secret,
       darkness: darkness,
-      username: username,
+      username: username || "anonymous", // Provide a fallback
     })
   }
 

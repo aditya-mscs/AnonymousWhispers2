@@ -5,7 +5,7 @@ export interface Secret {
   username: string
   darknessRatings: number[] // Array of user ratings
   averageDarkness: number // Average darkness rating
-  createdAt: Date
+  createdAt: string // ISO string format
   comments: Comment[]
 }
 
@@ -13,7 +13,7 @@ export interface Comment {
   id: string
   content: string
   username: string
-  createdAt: Date
+  createdAt: string // ISO string format
 }
 
 export interface SecretInput {
