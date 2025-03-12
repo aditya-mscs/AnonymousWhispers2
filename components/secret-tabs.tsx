@@ -7,6 +7,7 @@ import { SecretList } from "@/components/secret-list"
 import { fetchSecrets } from "@/lib/api/secrets"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
+import { PlusCircle } from "lucide-react"
 
 export function SecretTabs() {
   const [activeTab, setActiveTab] = useState("recent")
@@ -66,10 +67,48 @@ export function SecretTabs() {
     activeQuery.fetchNextPage()
   }
 
+  const renderEmptyState = () => (
+    <div className="text-center py-12 border rounded-lg">
+      <h3 className="text-lg font-medium mb-2">No secrets found</h3>
+      <p className="text-muted-foreground mb-6">Be the first to share your secret!</p>
+      <Button onClick={() => document.getElementById("secret-input")?.focus()}>
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Share a Secret
+      </Button>
+    </div>
+  )
+
+  const renderContent = (query: typeof recentQuery) => {
+    if (query.isLoading) {
+      return <SecretListSkeleton />
+    }
+
+    if (query.error) {
+      return <div className="text-center py-8 text-muted-foreground">Failed to load secrets. Please try again.</div>
+    }
+
+    if (!query.data || query.data.pages.length === 0 || query.data.pages[0].secrets.length === 0) {
+      return renderEmptyState()
+    }
+
+    return (
+      <>
+        <SecretList secrets={query.data.pages.flatMap((page) => page.secrets)} />
+        {query.hasNextPage && (
+          <div className="flex justify-center mt-8">
+            <Button onClick={handleLoadMore} disabled={query.isFetchingNextPage}>
+              {query.isFetchingNextPage ? "Loading more..." : "Load more secrets"}
+            </Button>
+          </div>
+        )}
+      </>
+    )
+  }
+
   return (
     <Tabs defaultValue="recent" onValueChange={setActiveTab} className="w-full">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">People&apos;s Secrets</h2>
+        <h2 className="text-2xl font-bold">People's Secrets</h2>
         <TabsList>
           <TabsTrigger value="recent">Most Recent</TabsTrigger>
           <TabsTrigger value="dark">Most Dark</TabsTrigger>
@@ -77,62 +116,11 @@ export function SecretTabs() {
         </TabsList>
       </div>
 
-      <TabsContent value="recent">
-        {recentQuery.isLoading ? (
-          <SecretListSkeleton />
-        ) : recentQuery.error ? (
-          <div className="text-center py-8 text-muted-foreground">Failed to load secrets. Please try again.</div>
-        ) : (
-          <>
-            <SecretList secrets={recentQuery.data.pages.flatMap((page) => page.secrets)} />
-            {recentQuery.hasNextPage && (
-              <div className="flex justify-center mt-8">
-                <Button onClick={handleLoadMore} disabled={recentQuery.isFetchingNextPage}>
-                  {recentQuery.isFetchingNextPage ? "Loading more..." : "Load more secrets"}
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-      </TabsContent>
+      <TabsContent value="recent">{renderContent(recentQuery)}</TabsContent>
 
-      <TabsContent value="dark">
-        {darkQuery.isLoading ? (
-          <SecretListSkeleton />
-        ) : darkQuery.error ? (
-          <div className="text-center py-8 text-muted-foreground">Failed to load secrets. Please try again.</div>
-        ) : (
-          <>
-            <SecretList secrets={darkQuery?.data?.pages?.flatMap((page) => page.secrets)} />
-            {darkQuery.hasNextPage && (
-              <div className="flex justify-center mt-8">
-                <Button onClick={handleLoadMore} disabled={darkQuery.isFetchingNextPage}>
-                  {darkQuery.isFetchingNextPage ? "Loading more..." : "Load more secrets"}
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-      </TabsContent>
+      <TabsContent value="dark">{renderContent(darkQuery)}</TabsContent>
 
-      <TabsContent value="trending">
-        {trendingQuery.isLoading ? (
-          <SecretListSkeleton />
-        ) : trendingQuery.error ? (
-          <div className="text-center py-8 text-muted-foreground">Failed to load secrets. Please try again.</div>
-        ) : (
-          <>
-            <SecretList secrets={trendingQuery?.data?.pages?.flatMap((page) => page.secrets)} />
-            {trendingQuery.hasNextPage && (
-              <div className="flex justify-center mt-8">
-                <Button onClick={handleLoadMore} disabled={trendingQuery.isFetchingNextPage}>
-                  {trendingQuery.isFetchingNextPage ? "Loading more..." : "Load more secrets"}
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-      </TabsContent>
+      <TabsContent value="trending">{renderContent(trendingQuery)}</TabsContent>
     </Tabs>
   )
 }

@@ -1,21 +1,18 @@
 import { Entity } from "electrodb"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb"
+import { getAwsConfig } from "@/lib/aws-client"
 
-// Initialize the DynamoDB client
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+// Initialize the DynamoDB client with explicit credentials
+// to avoid filesystem access attempts
+const client = new DynamoDBClient(getAwsConfig())
+
+const docClient = DynamoDBDocumentClient.from(client, {
+  marshallOptions: {
+    convertEmptyValues: true,
+    removeUndefinedValues: true,
   },
-  ...(process.env.NODE_ENV === "development" && {
-    endpoint: "http://localhost:8000",
-    sslEnabled: false,
-  }),
 })
-
-const docClient = DynamoDBDocumentClient.from(client)
 
 // Define the Secrets entity
 export const Secrets = new Entity(

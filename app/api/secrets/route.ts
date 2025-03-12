@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createNewSecret, getSecrets } from "@/lib/db/utils"
 import { containsUnsafeContent } from "@/lib/utils"
+import { rateLimiter } from "@/lib/rate-limit"
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,17 +26,28 @@ export async function GET(request: NextRequest) {
       : null
 
     return NextResponse.json({
-      secrets: result.secrets,
+      secrets: result.secrets || [], // Ensure we always return an array
       nextCursor,
     })
   } catch (error) {
     console.error("Error fetching secrets:", error)
-    return NextResponse.json({ error: "Failed to fetch secrets" }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: "Failed to fetch secrets",
+        secrets: [], // Return empty array on error
+        nextCursor: null,
+      },
+      { status: 500 },
+    )
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiter(request, 5, 60 * 1000) // 5 requests per minute
+    if (rateLimitResponse) return rateLimitResponse
+
     const body = await request.json()
 
     // Validate input

@@ -150,6 +150,7 @@ export function SecretInput() {
     <Card className="shadow-lg">
       <CardContent className="pt-6">
         <Textarea
+          id="secret-input"
           placeholder="Share your secret... (min 10 characters)"
           className="min-h-32 text-base resize-none"
           value={secret}

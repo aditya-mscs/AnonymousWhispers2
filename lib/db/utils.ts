@@ -83,25 +83,38 @@ export async function getSecrets(sort: "recent" | "darkness" | "trending", limit
       .desc()
   }
 
-  const result = await query.limit(limit).go({ cursor: lastEvaluatedKey })
+  try {
+    const result = await query.limit(limit).go({ cursor: lastEvaluatedKey })
 
-  const secrets = result.data.map(mapDbSecretToApiSecret)
+    const secrets = result.data.map(mapDbSecretToApiSecret)
 
-  // Get comments for each secret
-  for (const secret of secrets) {
-    const commentsResult = await Comments.query
-      .bySecretId({
-        secretId: secret.id,
-      })
-      .limit(5)
-      .go()
+    // Get comments for each secret
+    for (const secret of secrets) {
+      try {
+        const commentsResult = await Comments.query
+          .bySecretId({
+            secretId: secret.id,
+          })
+          .limit(5)
+          .go()
 
-    secret.comments = commentsResult.data.map(mapDbCommentToApiComment)
-  }
+        secret.comments = commentsResult.data.map(mapDbCommentToApiComment)
+      } catch (error) {
+        console.error(`Error fetching comments for secret ${secret.id}:`, error)
+        secret.comments = [] // Ensure comments is always an array
+      }
+    }
 
-  return {
-    secrets,
-    lastEvaluatedKey: result.cursor,
+    return {
+      secrets,
+      lastEvaluatedKey: result.cursor,
+    }
+  } catch (error) {
+    console.error("Error in getSecrets:", error)
+    return {
+      secrets: [],
+      lastEvaluatedKey: undefined,
+    }
   }
 }
 

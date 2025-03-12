@@ -7,7 +7,7 @@ export default function NotFound() {
       <h1 className="text-6xl font-bold mb-4">404</h1>
       <h2 className="text-2xl font-medium mb-6">Secret Not Found</h2>
       <p className="text-muted-foreground mb-8 max-w-md">
-        The secret you&apos;re looking for might have been deleted or never existed. Some secrets are meant to stay hidden.
+        The secret you're looking for might have been deleted or never existed. Some secrets are meant to stay hidden.
       </p>
       <Button asChild>
         <Link href="/">Return Home</Link>

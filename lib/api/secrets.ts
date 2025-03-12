@@ -17,7 +17,10 @@ export async function fetchSecrets({
     params.append("cursor", cursor)
   }
 
-  const response = await fetch(`/api/secrets?${params.toString()}`)
+  // Add cache control headers
+  const response = await fetch(`/api/secrets?${params.toString()}`, {
+    next: { revalidate: 60 }, // Cache for 60 seconds
+  })
 
   if (!response.ok) {
     throw new Error(`Failed to fetch secrets: ${response.statusText}`)
