@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "node scripts/seed-database.mjs"
+    "create-table": "node scripts/create-table.mjs",
+    "seed": "node scripts/seed-database.mjs",
+    "setup-db": "npm run create-table && npm run seed"
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.474.0",
@@ -26,6 +28,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
+    "dotenv": "^16.3.1",
     "electrodb": "^2.12.0",
     "lucide-react": "^0.294.0",
     "nanoid": "^5.0.4",

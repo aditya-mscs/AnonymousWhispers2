@@ -3,6 +3,12 @@ import { createNewSecret, getSecrets } from "@/lib/db/utils"
 import { containsUnsafeContent } from "@/lib/utils"
 import { rateLimiter } from "@/lib/rate-limit"
 
+// Import mock DB functions for development
+import * as mockDb from "@/lib/db/mock-db"
+
+// Use mock DB in development
+const useMockDb = process.env.NODE_ENV === "development"
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
@@ -19,7 +25,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const result = await getSecrets(sort, limit, lastEvaluatedKey)
+    // Use mock DB in development
+    const result = useMockDb
+      ? await mockDb.getSecrets(sort, limit, lastEvaluatedKey)
+      : await getSecrets(sort, limit, lastEvaluatedKey)
 
     const nextCursor = result.lastEvaluatedKey
       ? Buffer.from(JSON.stringify(result.lastEvaluatedKey)).toString("base64")
@@ -71,8 +80,10 @@ export async function POST(request: NextRequest) {
     // Get the IP address
     const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1"
 
-    // Create the secret
-    const secret = await createNewSecret(body.content, body.darkness, body.username, ip)
+    // Create the secret using mock DB in development
+    const secret = useMockDb
+      ? await mockDb.createNewSecret(body.content, body.darkness, body.username, ip)
+      : await createNewSecret(body.content, body.darkness, body.username, ip)
 
     return NextResponse.json(secret, { status: 201 })
   } catch (error) {

@@ -2,6 +2,28 @@ import { nanoid } from "nanoid";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
 import crypto from "crypto";
+import * as dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+import fs from 'fs';
+
+// Load environment variables from .env.local file
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const envPath = resolve(__dirname, '../.env.local');
+
+if (fs.existsSync(envPath)) {
+  console.log(`Loading environment variables from ${envPath}`);
+  dotenv.config({ path: envPath });
+} else {
+  console.log('No .env.local file found, using environment variables');
+  dotenv.config();
+}
+
+// Log AWS configuration (without secrets)
+console.log(`Using AWS Region: ${process.env.AWS_REGION || 'not set'}`);
+console.log(`AWS_ACCESS_KEY_ID: ${process.env.AWS_ACCESS_KEY_ID ? 'is set' : 'not set'}`);
+console.log(`AWS_SECRET_ACCESS_KEY: ${process.env.AWS_SECRET_ACCESS_KEY ? 'is set' : 'not set'}`);
 
 // Hash IP address function (copied from utils to avoid import issues)
 function hashIpAddress(ip) {

@@ -2,10 +2,18 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getSecretById, addCommentToSecret, rateSecretDarkness } from "@/lib/db/utils"
 import { containsUnsafeContent } from "@/lib/utils"
 
+// Import mock DB functions for development
+import * as mockDb from "@/lib/db/mock-db"
+
+// Use mock DB in development
+const useMockDb = process.env.NODE_ENV === "development"
+
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = params.id
-    const secret = await getSecretById(id)
+
+    // Use mock DB in development
+    const secret = useMockDb ? await mockDb.getSecretById(id) : await getSecretById(id)
 
     if (!secret) {
       return NextResponse.json({ error: "Secret not found" }, { status: 404 })
@@ -21,7 +29,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = params.id
-    const secret = await getSecretById(id)
+
+    // Use mock DB in development
+    const secret = useMockDb ? await mockDb.getSecretById(id) : await getSecretById(id)
 
     if (!secret) {
       return NextResponse.json({ error: "Secret not found" }, { status: 404 })
@@ -38,7 +48,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         return NextResponse.json({ error: "Rating must be a number between 1 and 10" }, { status: 400 })
       }
 
-      const result = await rateSecretDarkness(id, body.rating, ip)
+      // Use mock DB in development
+      const result = useMockDb
+        ? await mockDb.rateSecretDarkness(id, body.rating, ip)
+        : await rateSecretDarkness(id, body.rating, ip)
+
       return NextResponse.json(result)
     }
 
@@ -52,7 +66,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         return NextResponse.json({ error: "Content contains unsafe or prohibited elements" }, { status: 400 })
       }
 
-      const comment = await addCommentToSecret(id, body.content, body.username || "anonymous", ip)
+      // Use mock DB in development
+      const comment = useMockDb
+        ? await mockDb.addCommentToSecret(id, body.content, body.username || "anonymous", ip)
+        : await addCommentToSecret(id, body.content, body.username || "anonymous", ip)
 
       return NextResponse.json(comment)
     }
