@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/hooks/use-toast"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { rateSecretDarkness } from "@/lib/api/secrets"
 import type { Secret } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -20,6 +22,7 @@ export function SecretCard({ secret, onContentClick }: SecretCardProps) {
   const [formattedDate, setFormattedDate] = useState<string>("")
   const [userRating, setUserRating] = useState(5)
   const { toast } = useToast()
+  const queryClient = useQueryClient()
 
   // Handle date formatting on the client side only
   useEffect(() => {
@@ -29,16 +32,30 @@ export function SecretCard({ secret, onContentClick }: SecretCardProps) {
   const getDarknessColor = (darkness: number) => {
     if (darkness < 30) return "bg-green-500/10 text-green-500"
     if (darkness < 70) return "bg-yellow-500/10 text-yellow-500"
-    return "bg-red-500/10 text-red-500"
+    return 'bg-red-500/10 text-red-500"d-500'
   }
 
+  const ratingMutation = useMutation({
+    mutationFn: (rating: number) => rateSecretDarkness(secret.id, rating),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["secrets"] })
+      toast({
+        title: "Rating submitted",
+        description: `You rated this secret ${data.rating}/10 on darkness`,
+      })
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to submit your rating. Please try again.",
+        variant: "destructive",
+      })
+    },
+  })
+
   const handleRateDarkness = useCallback(() => {
-    // In a real app, this would call an API to update the rating
-    toast({
-      title: "Rating submitted",
-      description: `You rated this secret ${userRating}/10 on darkness`,
-    })
-  }, [userRating, toast])
+    ratingMutation.mutate(userRating)
+  }, [userRating, ratingMutation])
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
@@ -65,6 +82,7 @@ export function SecretCard({ secret, onContentClick }: SecretCardProps) {
             value={[userRating]}
             onValueChange={(value) => setUserRating(value[0])}
             onValueCommit={handleRateDarkness}
+            disabled={ratingMutation.isPending}
           />
         </div>
       </CardContent>

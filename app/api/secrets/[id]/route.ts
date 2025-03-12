@@ -1,43 +1,27 @@
 import { type NextRequest, NextResponse } from "next/server"
-import type { Secret } from "@/lib/types"
-
-// Mock database for development (same as in the main route file)
-const secrets: Secret[] = [
-  {
-    id: "1",
-    content:
-      "Sometimes I pretend to be busy at work just to avoid talking to my colleagues. I've perfected the art of looking focused while actually doing nothing.",
-    darkness: 30,
-    username: "silentShadow",
-    likes: 42,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    comments: [
-      {
-        id: "c1",
-        content: "I do this too! Thought I was the only one.",
-        username: "mysteryMouse",
-        createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-      },
-    ],
-  },
-  // More mock data would be here
-]
+import { getSecretById, addCommentToSecret, rateSecretDarkness } from "@/lib/db/utils"
+import { containsUnsafeContent } from "@/lib/utils"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id
-  const secret = secrets.find((s) => s.id === id)
+  try {
+    const id = params.id
+    const secret = await getSecretById(id)
 
-  if (!secret) {
-    return NextResponse.json({ error: "Secret not found" }, { status: 404 })
+    if (!secret) {
+      return NextResponse.json({ error: "Secret not found" }, { status: 404 })
+    }
+
+    return NextResponse.json(secret)
+  } catch (error) {
+    console.error("Error fetching secret:", error)
+    return NextResponse.json({ error: "Failed to fetch secret" }, { status: 500 })
   }
-
-  return NextResponse.json(secret)
 }
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = params.id
-    const secret = secrets.find((s) => s.id === id)
+    const secret = await getSecretById(id)
 
     if (!secret) {
       return NextResponse.json({ error: "Secret not found" }, { status: 404 })
@@ -45,10 +29,17 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     const body = await request.json()
 
+    // Get the IP address
+    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1"
+
     // Handle different actions
-    if (body.action === "like") {
-      secret.likes += 1
-      return NextResponse.json({ success: true, likes: secret.likes })
+    if (body.action === "rate") {
+      if (typeof body.rating !== "number" || body.rating < 1 || body.rating > 10) {
+        return NextResponse.json({ error: "Rating must be a number between 1 and 10" }, { status: 400 })
+      }
+
+      const result = await rateSecretDarkness(id, body.rating, ip)
+      return NextResponse.json(result)
     }
 
     if (body.action === "comment") {
@@ -56,15 +47,14 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         return NextResponse.json({ error: "Comment content is required" }, { status: 400 })
       }
 
-      const newComment = {
-        id: Math.random().toString(36).substring(2, 9),
-        content: body.content,
-        username: body.username || "anonymous",
-        createdAt: new Date(),
+      // Check for unsafe content
+      if (containsUnsafeContent(body.content)) {
+        return NextResponse.json({ error: "Content contains unsafe or prohibited elements" }, { status: 400 })
       }
 
-      secret.comments.push(newComment)
-      return NextResponse.json({ success: true, comment: newComment })
+      const comment = await addCommentToSecret(id, body.content, body.username || "anonymous", ip)
+
+      return NextResponse.json(comment)
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })

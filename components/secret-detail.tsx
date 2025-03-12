@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/hooks/use-toast"
 import type { Secret } from "@/lib/types"
-import { addComment } from "@/lib/api/secrets"
+import { addComment, rateSecretDarkness } from "@/lib/api/secrets"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { Slider } from "@/components/ui/slider"
@@ -49,6 +49,7 @@ export function SecretDetail({ secret }: SecretDetailProps) {
     mutationFn: (newComment: string) => addComment(secret.id, newComment),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["secrets"] })
+      queryClient.invalidateQueries({ queryKey: ["secret", secret.id] })
       setComment("")
       toast({
         title: "Comment added",
@@ -59,6 +60,25 @@ export function SecretDetail({ secret }: SecretDetailProps) {
       toast({
         title: "Error",
         description: "Failed to add your comment. Please try again.",
+        variant: "destructive",
+      })
+    },
+  })
+
+  const ratingMutation = useMutation({
+    mutationFn: (rating: number) => rateSecretDarkness(secret.id, rating),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["secrets"] })
+      queryClient.invalidateQueries({ queryKey: ["secret", secret.id] })
+      toast({
+        title: "Rating submitted",
+        description: `You rated this secret ${data.rating}/10 on darkness`,
+      })
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to submit your rating. Please try again.",
         variant: "destructive",
       })
     },
@@ -95,12 +115,8 @@ export function SecretDetail({ secret }: SecretDetailProps) {
   }
 
   const handleRateDarkness = useCallback(() => {
-    // In a real app, this would call an API to update the rating
-    toast({
-      title: "Rating submitted",
-      description: `You rated this secret ${userRating}/10 on darkness`,
-    })
-  }, [userRating, toast])
+    ratingMutation.mutate(userRating)
+  }, [userRating, ratingMutation])
 
   return (
     <div className="space-y-4 mt-4">
@@ -131,6 +147,7 @@ export function SecretDetail({ secret }: SecretDetailProps) {
           value={[userRating]}
           onValueChange={(value) => setUserRating(value[0])}
           onValueCommit={handleRateDarkness}
+          disabled={ratingMutation.isPending}
         />
       </div>
 

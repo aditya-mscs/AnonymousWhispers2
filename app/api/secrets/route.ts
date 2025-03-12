@@ -1,43 +1,37 @@
 import { type NextRequest, NextResponse } from "next/server"
-import type { Secret } from "@/lib/types"
-
-// Mock database for development
-const secrets: Secret[] = [
-  {
-    id: "1",
-    content:
-      "Sometimes I pretend to be busy at work just to avoid talking to my colleagues. I've perfected the art of looking focused while actually doing nothing.",
-    darkness: 30,
-    username: "silentShadow",
-    likes: 42,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    comments: [
-      {
-        id: "c1",
-        content: "I do this too! Thought I was the only one.",
-        username: "mysteryMouse",
-        createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-      },
-    ],
-  },
-  // More mock data would be here
-]
+import { createNewSecret, getSecrets } from "@/lib/db/utils"
+import { containsUnsafeContent } from "@/lib/utils"
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-  const sort = searchParams.get("sort") || "recent"
+  try {
+    const searchParams = request.nextUrl.searchParams
+    const sort = (searchParams.get("sort") as "recent" | "darkness" | "trending") || "recent"
+    const limit = Number.parseInt(searchParams.get("limit") || "20", 10)
+    const cursor = searchParams.get("cursor")
 
-  const sortedSecrets = [...secrets]
+    let lastEvaluatedKey = undefined
+    if (cursor) {
+      try {
+        lastEvaluatedKey = JSON.parse(Buffer.from(cursor, "base64").toString())
+      } catch (e) {
+        console.error("Invalid cursor", e)
+      }
+    }
 
-  if (sort === "recent") {
-    sortedSecrets.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-  } else if (sort === "darkness") {
-    sortedSecrets.sort((a, b) => b.darkness - a.darkness)
-  } else if (sort === "trending") {
-    sortedSecrets.sort((a, b) => b.likes + b.comments.length * 2 - (a.likes + a.comments.length * 2))
+    const result = await getSecrets(sort, limit, lastEvaluatedKey)
+
+    const nextCursor = result.lastEvaluatedKey
+      ? Buffer.from(JSON.stringify(result.lastEvaluatedKey)).toString("base64")
+      : null
+
+    return NextResponse.json({
+      secrets: result.secrets,
+      nextCursor,
+    })
+  } catch (error) {
+    console.error("Error fetching secrets:", error)
+    return NextResponse.json({ error: "Failed to fetch secrets" }, { status: 500 })
   }
-
-  return NextResponse.json(sortedSecrets)
 }
 
 export async function POST(request: NextRequest) {
@@ -57,21 +51,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Username is required" }, { status: 400 })
     }
 
-    // Create new secret
-    const newSecret: Secret = {
-      id: Math.random().toString(36).substring(2, 9),
-      content: body.content,
-      darkness: body.darkness,
-      username: body.username,
-      likes: 0,
-      createdAt: new Date(),
-      comments: [],
+    // Check for unsafe content
+    if (containsUnsafeContent(body.content)) {
+      return NextResponse.json({ error: "Content contains unsafe or prohibited elements" }, { status: 400 })
     }
 
-    // In a real app, save to database
-    secrets.unshift(newSecret)
+    // Get the IP address
+    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "127.0.0.1"
 
-    return NextResponse.json(newSecret, { status: 201 })
+    // Create the secret
+    const secret = await createNewSecret(body.content, body.darkness, body.username, ip)
+
+    return NextResponse.json(secret, { status: 201 })
   } catch (error) {
     console.error("Error creating secret:", error)
     return NextResponse.json({ error: "Failed to create secret" }, { status: 500 })

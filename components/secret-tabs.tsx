@@ -1,32 +1,70 @@
 "use client"
 
 import { useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SecretList } from "@/components/secret-list"
 import { fetchSecrets } from "@/lib/api/secrets"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
 
 export function SecretTabs() {
   const [activeTab, setActiveTab] = useState("recent")
 
-  const recentQuery = useQuery({
+  const recentQuery = useInfiniteQuery({
     queryKey: ["secrets", "recent"],
-    queryFn: () => fetchSecrets({ sort: "recent" }),
+    queryFn: ({ pageParam }) =>
+      fetchSecrets({
+        sort: "recent",
+        cursor: pageParam,
+      }),
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: activeTab === "recent",
   })
 
-  const darkQuery = useQuery({
+  const darkQuery = useInfiniteQuery({
     queryKey: ["secrets", "dark"],
-    queryFn: () => fetchSecrets({ sort: "darkness" }),
+    queryFn: ({ pageParam }) =>
+      fetchSecrets({
+        sort: "darkness",
+        cursor: pageParam,
+      }),
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: activeTab === "dark",
   })
 
-  const trendingQuery = useQuery({
+  const trendingQuery = useInfiniteQuery({
     queryKey: ["secrets", "trending"],
-    queryFn: () => fetchSecrets({ sort: "trending" }),
+    queryFn: ({ pageParam }) =>
+      fetchSecrets({
+        sort: "trending",
+        cursor: pageParam,
+      }),
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: activeTab === "trending",
   })
+
+  const getActiveQuery = () => {
+    switch (activeTab) {
+      case "recent":
+        return recentQuery
+      case "dark":
+        return darkQuery
+      case "trending":
+        return trendingQuery
+      default:
+        return recentQuery
+    }
+  }
+
+  const activeQuery = getActiveQuery()
+
+  const handleLoadMore = () => {
+    activeQuery.fetchNextPage()
+  }
 
   return (
     <Tabs defaultValue="recent" onValueChange={setActiveTab} className="w-full">
@@ -45,7 +83,16 @@ export function SecretTabs() {
         ) : recentQuery.error ? (
           <div className="text-center py-8 text-muted-foreground">Failed to load secrets. Please try again.</div>
         ) : (
-          <SecretList secrets={recentQuery.data || []} />
+          <>
+            <SecretList secrets={recentQuery.data.pages.flatMap((page) => page.secrets)} />
+            {recentQuery.hasNextPage && (
+              <div className="flex justify-center mt-8">
+                <Button onClick={handleLoadMore} disabled={recentQuery.isFetchingNextPage}>
+                  {recentQuery.isFetchingNextPage ? "Loading more..." : "Load more secrets"}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </TabsContent>
 
@@ -55,7 +102,16 @@ export function SecretTabs() {
         ) : darkQuery.error ? (
           <div className="text-center py-8 text-muted-foreground">Failed to load secrets. Please try again.</div>
         ) : (
-          <SecretList secrets={darkQuery.data || []} />
+          <>
+            <SecretList secrets={darkQuery.data.pages.flatMap((page) => page.secrets)} />
+            {darkQuery.hasNextPage && (
+              <div className="flex justify-center mt-8">
+                <Button onClick={handleLoadMore} disabled={darkQuery.isFetchingNextPage}>
+                  {darkQuery.isFetchingNextPage ? "Loading more..." : "Load more secrets"}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </TabsContent>
 
@@ -65,7 +121,16 @@ export function SecretTabs() {
         ) : trendingQuery.error ? (
           <div className="text-center py-8 text-muted-foreground">Failed to load secrets. Please try again.</div>
         ) : (
-          <SecretList secrets={trendingQuery.data || []} />
+          <>
+            <SecretList secrets={trendingQuery.data.pages.flatMap((page) => page.secrets)} />
+            {trendingQuery.hasNextPage && (
+              <div className="flex justify-center mt-8">
+                <Button onClick={handleLoadMore} disabled={trendingQuery.isFetchingNextPage}>
+                  {trendingQuery.isFetchingNextPage ? "Loading more..." : "Load more secrets"}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </TabsContent>
     </Tabs>
