@@ -6,14 +6,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function HomePage() {
   return (
     <div className="w-full px-4 py-8 space-y-8">
-      <section className="text-center max-w-3xl mx-auto">
+      <section className="text-center w-full">
         <h1 className="text-4xl font-bold tracking-tight mb-4">Share your darkest secrets anonymously</h1>
         <p className="text-xl text-muted-foreground">
           A safe space to vent without judgment. We don't store your personal information.
         </p>
       </section>
 
-      <section className="max-w-4xl mx-auto w-full">
+      <section className="w-full">
         <SecretInput />
       </section>
 

@@ -30,7 +30,7 @@ export function SecretTabs() {
 
   return (
     <Tabs defaultValue="recent" onValueChange={setActiveTab} className="w-full">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">People's Secrets</h2>
         <TabsList>
           <TabsTrigger value="recent">Most Recent</TabsTrigger>
@@ -74,9 +74,9 @@ export function SecretTabs() {
 
 function SecretListSkeleton() {
   return (
-    <div className="space-y-4">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-40 w-full" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Skeleton key={i} className="h-64 w-full" />
       ))}
     </div>
   )

@@ -29,9 +29,9 @@ export function SecretList({ secrets }: SecretListProps) {
 
   return (
     <>
-      <div className="flex flex-col space-y-4 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
         {secrets.map((secret) => (
-          <SecretCard key={secret.id} secret={secret} onClick={() => handleSecretClick(secret)} />
+          <SecretCard key={secret.id} secret={secret} onContentClick={() => handleSecretClick(secret)} />
         ))}
       </div>
 

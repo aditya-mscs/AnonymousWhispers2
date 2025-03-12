@@ -106,7 +106,7 @@ export function SecretDetail({ secret }: SecretDetailProps) {
     <div className="space-y-4 mt-4">
       <div className="flex justify-between items-start">
         <div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base font-medium">
             From @{secret.username} • {formattedDate}
           </p>
         </div>
@@ -116,30 +116,29 @@ export function SecretDetail({ secret }: SecretDetailProps) {
       </div>
 
       <div className="py-2">
-        <p className="whitespace-pre-line">{secret.content}</p>
+        <p className="whitespace-pre-line text-lg">{secret.content}</p>
       </div>
 
-      <div className="flex justify-between">
-        <div className="flex space-x-2">
-          <div className="space-y-1 w-full max-w-[200px]">
-            <div className="flex items-center justify-between">
-              <span className="text-xs">Rate Darkness</span>
-              <span className="text-xs font-medium">{userRating}/10</span>
-            </div>
-            <Slider
-              min={1}
-              max={10}
-              step={1}
-              value={[userRating]}
-              onValueChange={(value) => setUserRating(value[0])}
-              onValueCommit={handleRateDarkness}
-            />
-          </div>
-          <Button variant="outline" size="sm">
-            <MessageSquare className="h-4 w-4 mr-1" />
-            <span>{secret.comments.length}</span>
-          </Button>
+      <div className="space-y-2 mt-4">
+        <div className="flex items-center justify-between">
+          <span className="text-xs">Rate Darkness</span>
+          <span className="text-xs font-medium">{userRating}/10</span>
         </div>
+        <Slider
+          min={1}
+          max={10}
+          step={1}
+          value={[userRating]}
+          onValueChange={(value) => setUserRating(value[0])}
+          onValueCommit={handleRateDarkness}
+        />
+      </div>
+
+      <div className="flex justify-between mt-4">
+        <Button variant="outline" size="sm">
+          <MessageSquare className="h-4 w-4 mr-1" />
+          <span>{secret.comments.length} Comments</span>
+        </Button>
         <div className="flex space-x-2">
           <Button variant="outline" size="sm" onClick={handleShare}>
             <Share2 className="h-4 w-4 mr-1" />
@@ -170,7 +169,7 @@ export function SecretDetail({ secret }: SecretDetailProps) {
                 </Avatar>
                 <div className="space-y-1">
                   <div className="flex items-center">
-                    <span className="font-medium text-sm">@{comment.username}</span>
+                    <span className="font-medium text-base">@{comment.username}</span>
                     <span className="text-xs text-muted-foreground ml-2">{commentDates[comment.id] || ""}</span>
                   </div>
                   <p className="text-sm">{comment.content}</p>
