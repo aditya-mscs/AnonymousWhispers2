@@ -25,7 +25,7 @@ export default function AboutPage() {
             </div>
             <div className="space-y-2">
               <h3 className="font-medium">3. Engage With Others</h3>
-              <p>Read, like, and comment on secrets shared by others. Find comfort in knowing you're not alone.</p>
+              <p>Read, like, and comment on secrets shared by others. Find comfort in knowing you&apos;re not alone.</p>
             </div>
           </CardContent>
         </Card>
@@ -54,7 +54,7 @@ export default function AboutPage() {
         <Card>
           <CardHeader>
             <CardTitle>Future Enhancements</CardTitle>
-            <CardDescription>What's coming next to Anonymous Dark Secrets</CardDescription>
+            <CardDescription>What&apos;s coming next to Anonymous Dark Secrets</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">

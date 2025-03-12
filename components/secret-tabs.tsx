@@ -69,7 +69,7 @@ export function SecretTabs() {
   return (
     <Tabs defaultValue="recent" onValueChange={setActiveTab} className="w-full">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">People's Secrets</h2>
+        <h2 className="text-2xl font-bold">People&apos;s Secrets</h2>
         <TabsList>
           <TabsTrigger value="recent">Most Recent</TabsTrigger>
           <TabsTrigger value="dark">Most Dark</TabsTrigger>
